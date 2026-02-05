@@ -1,0 +1,178 @@
+<!DOCTYPE html><html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WATER UI Comics</title>
+<style>
+:root{--blue:#1e88ff;--orange:#ff9800}
+body{margin:0;font-family:Arial;background:#fff}
+header{text-align:center;padding:25px;border-bottom:3px solid var(--blue)}
+.water{font-size:48px;font-weight:900;color:#000}
+.ui{font-size:48px;font-weight:900;color:var(--blue)}
+main{max-width:1100px;margin:auto;padding:20px}
+button,input{padding:10px;border-radius:10px;border:1px solid var(--blue);margin:6px}
+button{background:var(--blue);color:white;font-weight:700;cursor:pointer}
+.admin,.settings{border:2px solid var(--blue);padding:16px;border-radius:16px;margin-bottom:20px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+.card{border:1px solid var(--blue);border-radius:14px;padding:10px;text-align:center}
+.card img{width:100%;border-radius:10px;cursor:pointer}
+.card h4{margin:6px 0;font-size:14px}
+.delete{background:#ff3b3b;border:none}
+#reader{display:none;border:2px solid var(--blue);border-radius:16px;padding:16px;text-align:center}
+#reader img{width:100%;max-height:80vh;object-fit:contain}
+.big1{font-size:120px;font-weight:900;color:var(--orange);text-align:center}
+.version{text-align:center;font-weight:900}
+.top{text-align:center;margin:15px}
+</style>
+</head>
+<body>
+<header><span class="water">WATER</span> <span class="ui">UI</span></header><div class="top">
+<button onclick="toggleSettings()">Ajustes</button>
+</div><main><div class="admin">
+<h3>Administrador</h3>
+<input id="pass" placeholder="Contraseña visible">
+<button onclick="login()">Entrar</button>
+<div id="adminArea" style="display:none">
+<input id="comicName" placeholder="Nombre del comic">
+<input id="comicImages" type="file" multiple accept="image/*">
+<button onclick="publishComic()">Publicar comic</button>
+</div>
+</div><div id="settings" class="settings" style="display:none">
+<h2>Ajustes del sistema</h2>
+<div style="text-align:center;font-size:64px;font-weight:900">
+<span style="color:black">WATER</span> <span style="color:#1e88ff">UI</span>
+</div>
+<div class="big1">1</div>
+<div class="version">1.0.2.0.1 TGBIXM</div>
+<button onclick="checkUpdates()">Buscar actualizaciones</button>
+</div><section id="gallery" class="gallery"></section>
+<div id="reader"></div>
+</main><script>
+const PASSWORD = "Marcosdavid1$";
+let isAdmin = false;
+
+const gallery = document.getElementById("gallery");
+const reader = document.getElementById("reader");
+const adminArea = document.getElementById("adminArea");
+const settings = document.getElementById("settings");
+
+function login(){
+ const passInput = document.getElementById("pass").value;
+ if(passInput === PASSWORD){
+   isAdmin = true;
+   adminArea.style.display = "block";
+   alert("Administrador activado");
+ } else {
+   alert("Contraseña incorrecta");
+ }
+}
+
+function toggleSettings(){
+ settings.style.display = settings.style.display === "none" ? "block" : "none";
+}
+
+function checkUpdates(){
+ alert("Sistema actualizado ✔");
+}
+
+function publishComic(){
+ if(!isAdmin) return alert("Solo el administrador puede publicar");
+
+ const name = document.getElementById("comicName").value.trim();
+ const files = [...document.getElementById("comicImages").files];
+ if(!name || files.length === 0) return alert("Completa todo");
+
+ const pages = [];
+ let loaded = 0;
+
+ files.forEach(file => {
+  const readerFile = new FileReader();
+  readerFile.onload = e => {
+    pages.push(e.target.result);
+    loaded++;
+    if(loaded === files.length) createCard(name, pages);
+  };
+  readerFile.readAsDataURL(file);
+ });
+
+ document.getElementById("comicName").value = "";
+ document.getElementById("comicImages").value = "";
+}
+
+function createCard(name, pages){
+ const card = document.createElement("div");
+ card.className = "card";
+
+ const img = document.createElement("img");
+ img.src = pages[0];
+ img.onclick = () => openReader(name, pages);
+
+ const title = document.createElement("h4");
+ title.textContent = name;
+
+ card.appendChild(img);
+ card.appendChild(title);
+
+ if(isAdmin){
+  const del = document.createElement("button");
+  del.textContent = "Eliminar";
+  del.className = "delete";
+  del.onclick = () => card.remove();
+  card.appendChild(del);
+ }
+
+ gallery.prepend(card);
+}
+
+function openReader(name, pages){
+ gallery.style.display = "none";
+ reader.style.display = "block";
+ reader.innerHTML = "";
+
+ let index = 0;
+
+ const back = document.createElement("button");
+ back.textContent = "← Volver";
+ back.onclick = () => {
+   reader.style.display = "none";
+   gallery.style.display = "grid";
+ };
+
+ const title = document.createElement("h2");
+ title.textContent = name;
+
+ const img = document.createElement("img");
+ img.src = pages[index];
+
+ const counter = document.createElement("p");
+ counter.textContent = `Página ${index+1} de ${pages.length}`;
+
+ const prev = document.createElement("button");
+ prev.textContent = "◀";
+ prev.onclick = () => {
+   if(index > 0){
+     index--;
+     img.src = pages[index];
+     counter.textContent = `Página ${index+1} de ${pages.length}`;
+   }
+ };
+
+ const next = document.createElement("button");
+ next.textContent = "▶";
+ next.onclick = () => {
+   if(index < pages.length - 1){
+     index++;
+     img.src = pages[index];
+     counter.textContent = `Página ${index+1} de ${pages.length}`;
+   }
+ };
+
+ reader.appendChild(back);
+ reader.appendChild(title);
+ reader.appendChild(img);
+ reader.appendChild(counter);
+ reader.appendChild(prev);
+ reader.appendChild(next);
+}
+</script></body>
+</html>
